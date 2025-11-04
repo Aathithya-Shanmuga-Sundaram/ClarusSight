@@ -21,7 +21,6 @@ st.markdown(
 )
 
 
-# --- Demo data generator (unchanged) ---
 def generate_mock_threat_data(num_entries=100):
     np.random.seed(42)
     dates = pd.date_range(start="2024-01-01", periods=num_entries, freq='D')
@@ -40,7 +39,7 @@ def generate_mock_threat_data(num_entries=100):
         'type': types
     })
 
-# --- New Section: Upload CSV or Use Demo ---
+
 uploaded_file = st.file_uploader("Upload your threat data (CSV format)", type=["csv"])
 
 if uploaded_file is not None:
@@ -50,7 +49,7 @@ else:
     st.info("ℹ️ No file uploaded. Using demo threat data instead.")
     df = generate_mock_threat_data()
 
-# --- Optional: Normalize Columns ---
+
 df.columns = df.columns.str.strip().str.lower()
 rename_map = {
     'date': 'publishedDate',
@@ -62,7 +61,6 @@ rename_map = {
     'threat_type': 'type'
 }
 df = df.rename(columns=rename_map)
-
 
 # Display the data
 st.subheader("Recent Threats")
@@ -105,7 +103,7 @@ if 'latitude' in df.columns and 'longitude' in df.columns:
 else:
     st.warning("Geolocation data is not available.")
 
-# Alerts Section (mock data)
+# Alerts Section
 def generate_mock_alerts(num_alerts=5):
     alerts = [
         {"date": f"2024-11-0{i+1}", "description": f"Critical vulnerability alert for Software {i+1}"}
