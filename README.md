@@ -1,98 +1,145 @@
 # Cyber Threat Intelligence Dashboard
 
-An interactive **cybersecurity analytics dashboard** built with Streamlit, designed to visualize and interpret live or mock threat data in real time.
-It helps analysts understand **attack patterns, severity levels, and global threat distribution** through intuitive visuals and user-driven filtering.
+An **AI-enhanced cybersecurity analytics platform** built with **Streamlit**, designed to help security teams visualize, analyze, and forecast global cyber threat trends. The dashboard combines **interactive data visualization** with **machine learning models** for **threat prediction** and **anomaly detection**, turning raw incident data into actionable intelligence.
 
 ---
 
-## ⚙️ Features
+## 🚀 Features
 
-* **📈 Threat Trends:**
-  Visualize how threats evolve over time using responsive line charts.
-* **🧾 Threat Database:**
-  View, filter, and search through recent threat records in an interactive table.
-* **🌍 Geolocation Mapping:**
-  See where cyber threats originate using a dynamic, color-coded world map.
-* **🚨 Alerts Panel:**
-  Displays recent security alerts and critical vulnerability notifications.
-* **📊 Severity Breakdown:**
-  Analyze the distribution of threats by severity level using bar charts.
-* **🔍 User Controls:**
-  Filter threats by type, search for specific indicators, or export filtered results.
-* **📂 Data Input Options:**
-  Upload your own threat dataset in `.csv` format — or fall back to auto-generated demo data.
+### 📊 **Data Visualization**
+
+* Interactive line charts for threat trends over time
+* Severity-based classification with bar charts
+* Real-time geolocation mapping of threat sources
+* Search and filter by specific threat types
+
+### 🤖 **AI-Powered Insights**
+
+* **Threat Prediction (Prophet Model):**
+  Uses time-series forecasting to predict future cyber threat trends and potential surges.
+
+* **Anomaly Detection (Isolation Forest):**
+  Detects unusual activity spikes that may indicate zero-day attacks or targeted campaigns.
+
+### 🗂️ **Data Management**
+
+* Upload your own CSV dataset or use the built-in demo data
+* Filter and explore threats by type, severity, or description
+* Export filtered results as CSV
+* Integrated alert feed for recent critical vulnerabilities
+
+### 🧠 **Tech Stack**
+
+* **Frontend:** Streamlit
+* **Visualization:** Plotly
+* **Data Handling:** Pandas, NumPy
+* **Machine Learning:** Prophet, Scikit-learn
+* **Language:** Python
 
 ---
 
-## 🧩 Technologies Used
+## ⚙️ Installation
 
-* **Python**
-* **Streamlit**
-* **Pandas**
-* **Plotly**
-* **NumPy**
+### Prerequisites
 
----
+* Python 3.8 or higher
+* pip (Python package manager)
 
-## 💻 Installation
-
-### **Prerequisites**
-
-* Python **3.8+**
-* `pip` (Python package manager)
-
-### **Steps to Install**
+### Steps to Install
 
 ```bash
-# Clone the repository
+# 1. Clone the repository
 git clone https://github.com/Aathithya-Shanmuga-Sundaram/Cyber-Threat-Intelligence-Dashboard
 
-# Navigate into the project directory
+# 2. Navigate to the project directory
 cd Cyber-Threat-Intelligence-Dashboard
 
-# Install dependencies
-pip install streamlit pandas plotly numpy
+# 3. Install dependencies
+pip install -r requirements.txt
 ```
 
 ---
 
-## 🚀 Usage
+## ▶️ Usage
 
-To launch the dashboard, run:
+Run the application with:
 
 ```bash
 streamlit run app.py
 ```
 
-After starting, a new tab will open in your default browser showing the **Cyber Threat Intelligence Dashboard**.
+Then open the automatically launched browser tab.
+
+### Upload Options
+
+* **Upload your own threat dataset** (`.csv` format)
+* Or use the **auto-generated demo dataset**
 
 ---
 
-## 📁 Data Input
+## Example Dataset (CSV Format)
 
-You can **upload your own threat data** (`.csv`) to replace the demo dataset.
-
-### Expected CSV Format:
-
-| publishedDate | description                                                           | severity | latitude | longitude | type    |
-| ------------- | --------------------------------------------------------------------- | -------- | -------- | --------- | ------- |
-| 2024-11-01    | Multiple SYN packets from a single IP — possible SYN flood attack.    | High     | 48.8566  | 2.3522    | DDoS    |
-| 2024-11-02    | Outbound traffic spike to unknown region — data exfiltration attempt. | Critical | 34.0522  | -118.2437 | Malware |
-
-If no file is uploaded, the app automatically generates **realistic mock data** for demonstration.
+| publishedDate | description                               | severity | latitude | longitude | type     |
+| ------------- | ----------------------------------------- | -------- | -------- | --------- | -------- |
+| 2024-10-15    | DDoS attack on cloud infrastructure       | Critical | 37.77    | -122.41   | DDoS     |
+| 2024-10-16    | Phishing attempt targeting banking sector | High     | 48.85    | 2.35      | Phishing |
 
 ---
 
-## Contributing
+## 📈 Modules Overview
 
-Contributions are always welcome.
-Fork the repository, create a new branch, make your changes, and submit a pull request.
+### 1. **Threat Trend Visualization**
+
+Shows monthly variation in global cyber incidents using interactive charts.
+
+### 2. **Threat Prediction**
+
+Predicts upcoming threat spikes using Facebook Prophet time-series modeling.
+
+### 3. **Anomaly Detection**
+
+Identifies irregular spikes using Isolation Forest, flagging abnormal threat counts.
+
+### 4. **Geolocation Map**
+
+Displays threats on a global map with color-coded severity levels.
+
+### 5. **Data Filtering & Export**
+
+Allows filtering by threat type and downloading refined results.
 
 ---
 
-## Author
+## 🗾 Results & Findings
 
-**Aathithya Shanmuga Sundaram**
-Cybersecurity Enthusiast • Researcher • Developer
+* AI models enhance the accuracy of early warning systems for threat surges.
+* Anomaly detection supports proactive response to irregular activity.
+* Visualization aids in quick assessment and reporting for cybersecurity teams.
 
-[LinkedIn](https://www.linkedin.com/in/aathithya-shanmuga-sundaram) | [GitHub](https://github.com/Aathithya-Shanmuga-Sundaram)
+---
+
+## 🧱 Future Enhancements
+
+* Integration with real-time threat intelligence APIs
+* User authentication and role-based dashboards
+* Email alerts for anomalies
+* Multi-language support and customizable UI themes
+
+---
+
+## 🤝 Contribution
+
+Contributions are welcome!
+Fork this repository, make your changes, and submit a pull request.
+
+---
+
+## 🧉 License
+
+MIT License © 2025 Aathithya Shanmuga Sundaram
+
+---
+
+**Short Repo Description:**
+
+> AI-powered Cyber Threat Intelligence Dashboard built with Streamlit — visualize, predict, and detect anomalies in global cyber threat data using Prophet forecasting and Isolation Forest models.
