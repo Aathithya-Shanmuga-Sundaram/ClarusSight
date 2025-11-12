@@ -1,12 +1,16 @@
+#-------------------------------------------------------------------------------------------
+#  OPEN-SOURCED UNDER THE INITATIVE #MakeEveryoneCyberSafe by Aathithya Shanmuga Sundaram
+#--------------------------------------------------------------------------------------------
+
 import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
 from prophet import Prophet
 from sklearn.ensemble import IsolationForest
-from datetime import timedelta
+from datetime import timedelta, date
 
-# Set page configuration for a wider layout
+
 st.set_page_config(layout="wide", page_title="Cyber Threat Intelligence Dashboard", page_icon="🛡️")
 
 # ----------------- UI Styling -----------------
@@ -49,11 +53,12 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# ----------------- Demo Data Generator (Cached for performance) -----------------
-def generate_mock_threat_data(num_entries=365 * 3): # Generate 3 years of data
-    """Generates mock threat data with enhanced randomness and volume."""
+# ----------------- Demo Data Generator (NO CACHING) -----------------
+def generate_mock_threat_data(num_entries=365 * 3):
+    """Generates mock threat data with enhanced randomness and volume.""" 
+    
     dates = pd.date_range(start="2022-11-01", periods=num_entries, freq='D')
-    # Introduce a slight trend and seasonality
+    
     base_lam = 5
     daily_trend = np.sin(np.linspace(0, 2 * np.pi * 3, num_entries)) * 2 + np.random.normal(0, 1, num_entries)
     daily_counts = np.maximum(1, np.round(base_lam + daily_trend)).astype(int)
@@ -64,10 +69,10 @@ def generate_mock_threat_data(num_entries=365 * 3): # Generate 3 years of data
     geo_data = {
         'USA': (37.0902, -95.7129), 'CHN': (35.8617, 104.1954),
         'RUS': (61.5240, 105.3188), 'DEU': (51.1657, 10.4515),
-        'IND': (20.5937, 78.9629)
+        'IND': (20.5937, 78.9629), 'BRA': (-14.235, -51.9253)
     }
     country_list = list(geo_data.keys())
-    country_weights = [0.3, 0.2, 0.15, 0.1, 0.25]
+    country_weights = [0.25, 0.2, 0.15, 0.1, 0.2, 0.1]
 
     for i, count in enumerate(daily_counts):
         for j in range(count):
@@ -98,9 +103,9 @@ if uploaded_file is not None:
     st.sidebar.success("✅ Data loaded successfully from your file!")
 else:
     df_raw = generate_mock_threat_data()
-    st.sidebar.info("ℹ️ No file uploaded. Using 3 years of **demo** threat data instead.")
+    st.sidebar.info("ℹ️ No file uploaded. Using **newly generated** 3 years of demo threat data.")
 
-# Normalize columns and convert date
+# Normalize columns
 df_raw.columns = df_raw.columns.str.strip().str.lower()
 rename_map = {
     'date': 'publisheddate', 'desc': 'description',
@@ -108,9 +113,16 @@ rename_map = {
     'lon': 'longitude', 'threat_type': 'type'
 }
 df_raw = df_raw.rename(columns=rename_map)
-df_raw['publisheddate'] = pd.to_datetime(df_raw['publisheddate'], errors='coerce')
+
+df_raw['publisheddate'] = pd.to_datetime(df_raw['publisheddate'], utc=True, errors='coerce').dt.tz_localize(None)
 df_raw = df_raw.dropna(subset=['publisheddate'])
-df_raw['date'] = df_raw['publisheddate'].dt.date # For daily grouping
+df_raw['date'] = df_raw['publisheddate'].dt.normalize() # Date without time
+
+
+if len(df_raw) > 200000:
+    st.warning(f"Large dataset detected ({len(df_raw)} rows). Showing a 200k-sample for performance. Consider DB-backed approach for production.")
+    df_raw = df_raw.sample(200000, random_state=42).copy()
+
 
 # ----------------- Filtering (Enhanced UX) -----------------
 st.sidebar.header("⚙️ Dashboard Filters")
@@ -124,37 +136,52 @@ date_range = st.sidebar.date_input(
     [max_date - timedelta(days=90), max_date]
 )
 
-if len(date_range) == 2:
+try:
     start_date, end_date = pd.to_datetime(date_range[0]), pd.to_datetime(date_range[1])
-    df_filtered = df_raw[(df_raw['publisheddate'] >= start_date) & (df_raw['publisheddate'] <= end_date)].copy()
-else:
-    st.warning("Please select a start and end date.")
-    df_filtered = df_raw.copy()
+    if start_date > end_date:
+        start_date, end_date = end_date, start_date # Swap if out of order
+except Exception:
+    start_date, end_date = df_raw['publisheddate'].min(), df_raw['publisheddate'].max()
+    st.sidebar.warning("Using full data range — please select valid start and end dates.")
+
+df_filtered = df_raw[(df_raw['publisheddate'] >= start_date) & (df_raw['publisheddate'] <= end_date)].copy()
+
 
 # 2. Severity Filter
-severity_options = ['All'] + df_filtered['severity'].unique().tolist()
+severity_options = df_raw['severity'].unique().tolist()
 selected_severity = st.sidebar.multiselect(
     "Filter by Severity",
-    options=severity_options[1:],
-    default=severity_options[1:]
+    options=severity_options,
+    default=severity_options
 )
 
 if selected_severity:
     df_filtered = df_filtered[df_filtered['severity'].isin(selected_severity)].copy()
-elif 'All' not in severity_options:
-    st.error("No valid severity data found for the selected date range.")
+elif not df_filtered.empty:
+     st.warning("No data found for the selected severity levels.")
+
+cont_val = st.sidebar.slider(
+    "Anomaly Contamination (Expected fraction of anomalies)", 
+    0.01, 0.2, 0.05, 0.01,
+    help="Higher contamination values flag more points as anomalies."
+)
+
 
 # ----------------- Key Performance Indicators (KPIs) -----------------
 st.subheader("💡 Key Threat Metrics")
 
+total_threats = len(df_filtered)
+
+days_in_period = (end_date - start_date).days
+if days_in_period < 1: # Handle single day or invalid range
+    days_in_period = 1
+    avg_daily_threats = total_threats
+else:
+    avg_daily_threats = total_threats / days_in_period
+
 if not df_filtered.empty:
-    total_threats = len(df_filtered)
     critical_threats = len(df_filtered[df_filtered['severity'] == 'Critical'])
     unique_types = df_filtered['type'].nunique()
-
-    # Calculate threats per day over the filtered period
-    days_in_period = (end_date - start_date).days
-    avg_daily_threats = total_threats / days_in_period if days_in_period > 0 else 0
 
     col1, col2, col3, col4 = st.columns(4)
 
@@ -170,6 +197,8 @@ if not df_filtered.empty:
     st.markdown("---")
 else:
     st.warning("No data to display for the selected filters.")
+    st.stop() # Stop execution if no data is available
+
 
 # ----------------- Layout for Visuals -----------------
 col_chart_1, col_chart_2 = st.columns(2)
@@ -182,7 +211,6 @@ with col_chart_1:
     severity_order = ['Critical', 'High', 'Medium', 'Low']
     severity_colors = {'Critical': '#ff4c4c', 'High': '#ff9900', 'Medium': '#ffcc00', 'Low': '#00bcd4'}
 
-    # Ensure all severities are present for consistent color mapping
     severity_counts['Severity'] = pd.Categorical(severity_counts['Severity'], categories=severity_order, ordered=True)
     severity_counts = severity_counts.sort_values('Severity')
 
@@ -228,7 +256,6 @@ st.plotly_chart(fig, use_container_width=True)
 if 'latitude' in df_filtered.columns and 'longitude' in df_filtered.columns:
     st.subheader("🌍 Threats by Location")
 
-    # Use a scatter_geo for better visualization of global data points
     map_fig = px.scatter_geo(
         df_filtered,
         lat='latitude',
@@ -245,9 +272,7 @@ if 'latitude' in df_filtered.columns and 'longitude' in df_filtered.columns:
 
 st.markdown("---")
 
-# =========================================================
-# 🔮 PROPHET MODULE + INTERPRETATION (Enhanced)
-# =========================================================
+# PROPHET MODULE + INTERPRETATION 
 st.header("📈 Threat Trend Prediction (Prophet)")
 
 # Prophet Prediction Period Widget
@@ -259,18 +284,20 @@ forecast_periods = st.slider(
 try:
     daily_counts = df_filtered.groupby(df_filtered['date']).size().reset_index(name='Count')
     
-    # Check for enough data points
     if len(daily_counts) < 2:
         st.warning("⚠️ Need at least 2 days of data for Prophet forecasting in the selected range.")
     else:
         forecast_df = daily_counts.rename(columns={daily_counts.columns[0]: 'ds', 'Count': 'y'})
         forecast_df['ds'] = pd.to_datetime(forecast_df['ds'])
 
-        # Suppress Prophet output
-        with st.spinner('Training Prophet model...'):
+
+        weekly_seasonality_enabled = len(forecast_df) > 14
+        
+        with st.spinner(f'Training Prophet model... (Weekly Seasonality: {weekly_seasonality_enabled})'):
             model = Prophet(
-                yearly_seasonality=False, # Assuming filtered data doesn't cover a full year
-                weekly_seasonality=True
+                daily_seasonality=False, 
+                weekly_seasonality=weekly_seasonality_enabled, 
+                yearly_seasonality=False
             )
             model.fit(forecast_df)
 
@@ -283,39 +310,40 @@ try:
 
         # 🔍 Forecast Interpretation
         latest_yhat = forecast['yhat'].iloc[-1]
-        previous_yhat_idx = -(forecast_periods // 2) - 1 # Midpoint of the forecast period
-        previous_yhat = forecast['yhat'].iloc[previous_yhat_idx]
+        previous_yhat = forecast['yhat'].iloc[len(forecast_df)-1]
         
-        # Calculate percentage change from the start of the forecast to the end
-        change = ((latest_yhat - forecast['yhat'].iloc[len(forecast_df)-1]) / forecast['yhat'].iloc[len(forecast_df)-1]) * 100 if forecast['yhat'].iloc[len(forecast_df)-1] != 0 else 0
+        # Calculate percentage change from the last actual day's prediction to the end of the forecast
+        pct_forecast_change = ((latest_yhat - previous_yhat) / previous_yhat) * 100 if previous_yhat != 0 else 0
 
         st.subheader("📊 Forecast Insight")
-        if change > 10:
-            st.warning(f"⚠️ **Action Required:** Threat volume is expected to **increase significantly** by **{change:.1f}%** over the next {forecast_periods} days. Review defenses.")
-        elif change < -10:
-            st.success(f"✅ Threat levels are projected to **decline** by **{abs(change):.1f}%** over the next {forecast_periods} days.")
+        if pct_forecast_change > 10:
+            st.warning(f"⚠️ **Action Required:** Threat volume is expected to **increase significantly** by **{pct_forecast_change:.1f}%** over the next {forecast_periods} days. Review defenses.")
+        elif pct_forecast_change < -10:
+            st.success(f"✅ Threat levels are projected to **decline** by **{abs(pct_forecast_change):.1f}%** over the next {forecast_periods} days.")
         else:
-            st.info(f"ℹ️ Threat activity is expected to remain relatively stable (change: {change:.1f}%) over the next {forecast_periods} days.")
+            st.info(f"ℹ️ Threat activity is expected to remain relatively stable (change: {pct_forecast_change:.1f}%) over the next {forecast_periods} days.")
 
 except Exception as e:
-    st.error(f"Prediction module error: Prophet needs enough data points in the selected range to run. ({e})")
+    st.error(f"Prediction module error: Could not train model. ({e})")
 
 st.markdown("---")
 
-# =========================================================
-# ⚠️ ANOMALY DETECTION (ISOLATION FOREST)
-# =========================================================
+
+# ANOMALY DETECTION (ISOLATION FOREST)
+
 st.header("🚨 Anomaly Detection in Threat Data")
 
 try:
     anomaly_data = df_filtered.groupby(df_filtered['date']).size().reset_index(name='Count')
     anomaly_data['date'] = pd.to_datetime(anomaly_data['date'])
 
-    # Isolation Forest
-    clf = IsolationForest(contamination='auto', random_state=42)
-    # Use 'auto' contamination or a slider for user input (0.01 to 0.2)
+
+    clf = IsolationForest(contamination=cont_val, random_state=42)
     anomaly_data['Anomaly'] = clf.fit_predict(anomaly_data[['Count']])
     anomalies = anomaly_data[anomaly_data['Anomaly'] == -1]
+    
+    # Get the raw number of anomaly points for the report
+    num_anomalies = len(anomalies)
 
     fig2 = px.scatter(
         anomaly_data, x='date', y='Count',
@@ -330,9 +358,18 @@ try:
 
     # 🧩 Contextual summary
     if not anomalies.empty:
-        # Get top 3 anomaly dates
         spike_dates = anomalies.sort_values(by='Count', ascending=False)['date'].dt.strftime('%Y-%m-%d').tolist()
-        st.warning(f"🚨 **Urgent Review:** Significant threat spikes detected on **{', '.join(spike_dates[:3])}** with unusually high volumes. Investigate specific threat types/locations for these dates.")
+        st.warning(f"🚨 **Urgent Review:** Significant threat spikes detected on **{', '.join(spike_dates[:3])}** with unusually high volumes.")
+        
+
+        st.subheader("🔍 Anomaly Drilldown: Raw Events")
+        for d in anomalies['date'].dt.date.unique()[:3]:
+            st.markdown(f"**Top 20 Events on {d}:**")
+            st.dataframe(
+                df_filtered[df_filtered['date'] == pd.to_datetime(d)].sort_values(by='severity', ascending=False).head(20),
+                use_container_width=True
+            )
+            
     else:
         st.info("✅ No anomalous threat activity detected in the selected time frame.")
 except Exception as e:
@@ -340,27 +377,36 @@ except Exception as e:
 
 st.markdown("---")
 
-# ----------------- Data Tables and Export -----------------
+
+# 💾 Data Tables and Export + POLISH
+
 st.header("🧾 Raw Data View and Export")
 
-# ----------------- Recent Alerts (Unchanged as it's a good mock) -----------------
-def generate_mock_alerts(num_alerts=5):
-    alerts = [
-        {"date": f"{pd.Timestamp.today().date() - timedelta(days=i)}", "description": f"Critical vulnerability alert for Software {i+1} - CVE-2024-XXXX", "severity": "Critical"}
-        for i in range(num_alerts)
-    ]
-    return pd.DataFrame(alerts)
+# ----------------- One-Line Report (POLISH) -----------------
+today = date.today()
+k_total = len(df_filtered)
 
-alerts_df = generate_mock_alerts()
-if not alerts_df.empty:
-    st.subheader("🚨 Recent High-Priority Alerts (Static Mock)")
-    st.dataframe(alerts_df, use_container_width=True)
+report = f"""
+CTI Quick Report ({today}):
+Total threats in period: {k_total}
+Period duration: {days_in_period} days
+Avg. daily threats: {avg_daily_threats:.1f}
+Anomalies detected: {num_anomalies}
+Top threat type: {type_counts['Threat Type'].iloc[0] if not type_counts.empty else 'N/A'}
+Forecast change (over next {forecast_periods} days): {pct_forecast_change:.1f}%
+"""
 
+st.download_button(
+    label="⬇️ Download Quick Report TXT",
+    data=report,
+    file_name=f"cti_quick_report_{today}.txt",
+    mime='text/plain',
+    help="Generates a short text summary of the current filtered view."
+)
 # ----------------- Filtered Threat Data Display -----------------
 st.subheader("Filtered Threat Data")
 st.caption(f"Showing {len(df_filtered)} records.")
 
-# Search Function is now applied to filtered data
 search_term = st.text_input("🔍 Search threat descriptions:", help="Search across the current filtered data.")
 if search_term:
     search_filtered_data = df_filtered[df_filtered['description'].str.contains(search_term, case=False, na=False)]
@@ -374,7 +420,7 @@ def convert_df_to_csv(df):
 
 csv = convert_df_to_csv(df_filtered)
 st.download_button(
-    label="💾 Download Filtered Data as CSV",
+    label="💾 Download Full Filtered Data as CSV",
     data=csv,
     file_name='threat_data_filtered.csv',
     mime='text/csv',
@@ -382,4 +428,4 @@ st.download_button(
 )
 
 st.markdown("---")
-st.markdown("<p style='text-align: center; color: gray;'>Developed by Aathithya Shanmuga Sundaram #MakeEveryoneCyberSafe </p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: gray;'>Developed by Aathithya Shanmuga Sundaram #MakeEveryoneCyberSafe</p>", unsafe_allow_html=True)
