@@ -1,5 +1,9 @@
 # Cyber Threat Intelligence Dashboard
 
+[![Python 3.6+](https://img.shields.io/badge/Python-3.6%2B-blue.svg)](https://www.python.org/)
+[![Zero Dependencies](https://img.shields.io/badge/Dependencies-0-green.svg)](https://www.python.org/)
+[![Cybersecurity Lab](https://img.shields.io/badge/%23MakeEveryoneCyberSafe-orange.svg)](https://github.com/Aathithya-Shanmuga-Sundaram)
+
 An **AI-enhanced cybersecurity analytics platform** built with **Streamlit**, designed to help security teams visualize, analyze, and forecast global cyber threat trends. The dashboard combines **interactive data visualization** with **machine learning models** for **threat prediction** and **anomaly detection**, turning raw incident data into actionable intelligence.
 
 ---
