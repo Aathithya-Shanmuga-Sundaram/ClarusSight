@@ -1,149 +1,118 @@
-# Cyber Threat Intelligence Dashboard
-
+# ClarusSight CTI Dashboard
 [![Python 3.6+](https://img.shields.io/badge/Python-3.6%2B-blue.svg)](https://www.python.org/)
-[![Seven Dependencies](https://img.shields.io/badge/Dependencies-7-green.svg)](https://www.python.org/)
+[![Seven Dependencies](https://img.shields.io/badge/Dependencies-5-green.svg)](https://www.python.org/)
 [![Cybersecurity Lab](https://img.shields.io/badge/%23MakeEveryoneCyberSafe-orange.svg)](https://github.com/Aathithya-Shanmuga-Sundaram)
 
-An **AI-enhanced cybersecurity analytics platform** built with **Streamlit**, designed to help security teams visualize, analyze, and forecast global cyber threat trends. The dashboard combines **interactive data visualization** with **machine learning models** for **threat prediction** and **anomaly detection**, turning raw incident data into actionable intelligence.
+A production-ready Cyber Threat Intelligence (CTI) Dashboard with AI-powered anomaly detection, incident response playbooks, and professional PDF reporting.
 
 ---
 
 ## 🚀 Features
 
-### 📊 **Data Visualization**
+### Real-time Threat Monitoring
 
-* Interactive line charts for threat trends over time
-* Severity-based classification with bar charts
-* Real-time geolocation mapping of threat sources
-* Search and filter by specific threat types
+* 5 Threat Categories: **Malware**, **Phishing**, **DoS**, **Reconnaissance**, **Insider Threats**
+* Live Data Simulation: Generates realistic minute-by-minute threat data
+* Interactive Plotly Charts: Switch between threat types with anomaly overlays
 
-### 🤖 **AI-Powered Insights**
+### AI/ML Powered Detection
 
-* **Threat Prediction (Prophet Model):**
-  Uses time-series forecasting to predict future cyber threat trends and potential surges.
+* **Isolation Forest**: Global multivariate anomaly detection
+* **Z-Score Contextual**: Category-specific spike detection
+* **Random Forest Forecasting**: 10-minute ahead predictions
 
-* **Anomaly Detection (Isolation Forest):**
-  Detects unusual activity spikes that may indicate zero-day attacks or targeted campaigns.
+### Incident Response Playbook
 
-### 🗂️ **Data Management**
+* Automated Incident Tracking: Anomalies → Trackable Incidents
+* One-Click Actions: Mitigate / Dismiss with audit trail
+* Response Status Dashboard: Open / Resolved incident metrics
 
-* Upload your own CSV dataset or use the built-in demo data
-* Filter and explore threats by type, severity, or description
-* Export filtered results as CSV
-* Integrated alert feed for recent critical vulnerabilities
+### Professional Reporting
 
-### 🧠 **Tech Stack**
+* PDF Export: Executive summaries, threat distributions, active incidents
+* Real Data Integration: Pulls live stats from your operations
+* Print-ready: Stakeholder briefings and lab demonstrations
 
-* **Frontend:** Streamlit
-* **Visualization:** Plotly
-* **Data Handling:** Pandas, NumPy
-* **Machine Learning:** Prophet, Scikit-learn
-* **Language:** Python
+### AdminLTE Enterprise UI
+
+* Dark cybersecurity theme
+* Responsive design (mobile/desktop)
+* Profile page with real performance metrics
 
 ---
 
-## ⚙️ Installation
+## 🛠️ Tech Stack
 
-### Prerequisites
+* **Backend**: Flask + Pandas + Scikit-learn
+* **Frontend**: AdminLTE 3.2 + Plotly.js + Bootstrap 5
+* **AI/ML**: RandomForestRegressor, IsolationForest, StandardScaler
+* **PDF**: ReportLab
+* **Data**: CSV + JSON persistence
 
-* Python 3.8 or higher
-* pip (Python package manager)
+---
 
-### Steps to Install
+## 📦 Installation
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/Aathithya-Shanmuga-Sundaram/Cyber-Threat-Intelligence-Dashboard
-
-# 2. Navigate to the project directory
-cd Cyber-Threat-Intelligence-Dashboard
-
-# 3. Install dependencies
+# Clone & Install
+git clone https://github.com/Aathithya-Shanmuga-Sundaram/ClarusSight
+cd ClarusSight
 pip install -r requirements.txt
+
+# Run
+python app.py
+```
+
+## 🎮 Usage
+
+* **Start Dashboard:** `python app.py`
+* **Login Password:** `admin` (change in `config.json`)
+* **Monitor Threats:** Dashboard auto-generates data + detects anomalies
+* **Respond:** Alerts → Mitigate/Dismiss incidents
+* **Export Report:** Profile → "Professional Report" → PDF download
+
+---
+
+## 📊 Sample Report Output
+
+**ClarusSight CTI Report**
+*Generated: December 12, 2025 08:47 UTC*
+
+**Executive Summary:**
+
+* Total Events: 12,450
+* Open Incidents: 23
+* Resolved: 187
+* Response Rate: 89%
+
+**Threat Landscape:**
+
+* PHISHING (42.3%)
+* MALWARE (31.7%)
+* RECON (15.2%)
+* ...
+
+---
+## 🔧 Configuration
+
+```json
+// config.json (auto-generated)
+{
+  "admin_password": "admin",
+  "preserve_history": true,
+  "webhook_url": ""
+}
 ```
 
 ---
 
-## ▶️ Usage
+## 📈 Data Flow
 
-Run the application with:
-
-```bash
-streamlit run app.py
+```
+Synthetic Data → Pivot Table → ML Models →
+Anomaly Detection → Incident DB → Dashboard → PDF Report
 ```
 
-Then open the automatically launched browser tab.
-
-### Upload Options
-
-* **Upload your own threat dataset** (`.csv` format)
-* Or use the **auto-generated demo dataset**
-
 ---
 
-## Example Dataset (CSV Format)
-
-| publishedDate | description                               | severity | latitude | longitude | type     |
-| ------------- | ----------------------------------------- | -------- | -------- | --------- | -------- |
-| 2024-10-15    | DDoS attack on cloud infrastructure       | Critical | 37.77    | -122.41   | DDoS     |
-| 2024-10-16    | Phishing attempt targeting banking sector | High     | 48.85    | 2.35      | Phishing |
-
----
-
-## 📈 Modules Overview
-
-### 1. **Threat Trend Visualization**
-
-Shows monthly variation in global cyber incidents using interactive charts.
-
-### 2. **Threat Prediction**
-
-Predicts upcoming threat spikes using Facebook Prophet time-series modeling.
-
-### 3. **Anomaly Detection**
-
-Identifies irregular spikes using Isolation Forest, flagging abnormal threat counts.
-
-### 4. **Geolocation Map**
-
-Displays threats on a global map with color-coded severity levels.
-
-### 5. **Data Filtering & Export**
-
-Allows filtering by threat type and downloading refined results.
-
----
-
-## 🗾 Results & Findings
-
-* AI models enhance the accuracy of early warning systems for threat surges.
-* Anomaly detection supports proactive response to irregular activity.
-* Visualization aids in quick assessment and reporting for cybersecurity teams.
-
----
-
-## 🧱 Future Enhancements
-
-* Integration with real-time threat intelligence APIs
-* User authentication and role-based dashboards
-* Email alerts for anomalies
-* Multi-language support and customizable UI themes
-
----
-
-## 🤝 Contribution
-
-Contributions are welcome!
-Fork this repository, make your changes, and submit a pull request.
-
----
-
-## 🧉 License
-
-MIT License © 2025 Aathithya Shanmuga Sundaram
-
----
-
-**Short Repo Description:**
-
-> AI-powered Cyber Threat Intelligence Dashboard built with Streamlit — visualize, predict, and detect anomalies in global cyber threat data using Prophet forecasting and Isolation Forest models.
+*#MakeEveryoneCyberSafe* - Built for cybersecurity education & real-world SOC operations 🚀
