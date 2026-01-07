@@ -1,3 +1,8 @@
+"""
+Advanced Cyber Threat Intelligence Framework
+Real-Time Threat Forecasting & Anomaly Detection with AI-Powered Insights
+"""
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -19,7 +24,7 @@ warnings.filterwarnings('ignore')
 
 # Page configuration
 st.set_page_config(
-    page_title="ClarusSight v3.0",
+    page_title="Advanced CTI Framework",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -77,7 +82,8 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 class AdvancedThreatIntelligence:
- 
+    """Advanced CTI Framework with ML-powered predictions"""
+    
     def __init__(self):
         self.threat_database = []
         self.ioc_database = []
@@ -329,7 +335,7 @@ if 'threats' not in st.session_state:
 # Header
 st.markdown("""
 <div style='text-align: center; padding: 20px; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); border-radius: 15px; margin-bottom: 30px;'>
-    <h1 style='margin: 0; font-size: 3em;'>🛡️ ClarusSight</h1>
+    <h1 style='margin: 0; font-size: 3em;'>🛡️ Advanced CTI Framework</h1>
     <p style='font-size: 1.2em; color: #00d9ff; margin: 10px 0 0 0;'>Real-Time Threat Intelligence with AI-Powered Predictions</p>
 </div>
 """, unsafe_allow_html=True)
@@ -341,8 +347,33 @@ with st.sidebar:
     
     time_range = st.selectbox(
         "Time Range",
-        ["Last 24 Hours", "Last 7 Days", "Last 30 Days", "Custom Range"]
+        ["Last 24 Hours", "Last 7 Days", "Last 30 Days", "Custom Range"],
+        index=2
     )
+    
+    # Show date pickers if Custom Range is selected
+    custom_start_date = None
+    custom_end_date = None
+    if time_range == "Custom Range":
+        st.info("📅 Select your custom date range:")
+        col1, col2 = st.columns(2)
+        with col1:
+            custom_start_date = st.date_input(
+                "Start Date",
+                value=datetime.now() - timedelta(days=30),
+                max_value=datetime.now()
+            )
+        with col2:
+            custom_end_date = st.date_input(
+                "End Date",
+                value=datetime.now(),
+                max_value=datetime.now()
+            )
+        
+        # Show selected range
+        if custom_start_date and custom_end_date:
+            days_diff = (custom_end_date - custom_start_date).days
+            st.success(f"✅ Range: {days_diff + 1} days selected")
     
     threat_filter = st.multiselect(
         "Filter Threat Types",
@@ -385,6 +416,14 @@ elif time_range == "Last 7 Days":
 elif time_range == "Last 30 Days":
     time_threshold = datetime.now() - timedelta(days=30)
     threats_df = threats_df[threats_df['timestamp'] >= time_threshold]
+elif time_range == "Custom Range" and custom_start_date and custom_end_date:
+    # Convert date inputs to datetime with time
+    start_datetime = pd.to_datetime(custom_start_date)
+    end_datetime = pd.to_datetime(custom_end_date) + timedelta(days=1) - timedelta(seconds=1)  # End of day
+    threats_df = threats_df[
+        (threats_df['timestamp'] >= start_datetime) & 
+        (threats_df['timestamp'] <= end_datetime)
+    ]
 
 # Apply threat type filter
 if threat_filter:
@@ -423,7 +462,12 @@ if len(threats_df) < len(st.session_state.threats):
             filter_summary.append(f"Types: {', '.join(threat_filter)}")
         if severity_filter:
             filter_summary.append(f"Severity: {', '.join(severity_filter)}")
-        filter_summary.append(f"Time: {time_range}")
+        
+        # Show time range info
+        if time_range == "Custom Range" and custom_start_date and custom_end_date:
+            filter_summary.append(f"Time: {custom_start_date.strftime('%Y-%m-%d')} to {custom_end_date.strftime('%Y-%m-%d')}")
+        else:
+            filter_summary.append(f"Time: {time_range}")
         
         st.info(f"🔍 **Filters Active:** {' | '.join(filter_summary)} | Showing {len(threats_df)} of {len(st.session_state.threats)} threats")
     with col2:
@@ -1480,7 +1524,7 @@ with tabs[5]:
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; padding: 20px; color: #a4b0be;'>
-    <p>🛡️ ClarusSight v3.0 | Developed by Aathithya Shanmuga Sundaram</p>
+    <p>🛡️ Advanced CTI Framework v3.0 | Powered by AI & Machine Learning</p>
     <p>Real-time threat intelligence • Predictive analytics • Anomaly detection • Attack correlation</p>
 </div>
 """, unsafe_allow_html=True)
